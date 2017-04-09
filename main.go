@@ -72,6 +72,12 @@ func main() {
 			return
 		}
 
+		filename := fmt.Sprintf("Runtastic %s.zip", formatTime(time.Now()))
+		header := fmt.Sprintf("attachment; filename=\"%s\"", filename)
+
+		w.Header().Set("Content-Disposition", header)
+		w.Header().Set("Content-Type", "application/zip")
+
 		export(activities, w)
 	})
 
