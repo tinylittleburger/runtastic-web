@@ -49,7 +49,30 @@ func export(activities []api.Activity, w io.Writer) error {
 
 func main() {
 	http.HandleFunc("/download", func(w http.ResponseWriter, r *http.Request) {
-		api.Login(context.Background(), "", "")
+		username := "imateapot@mailinator.com"
+		password := "imateapot"
+
+		ctx := context.Background()
+		session, err := api.Login(ctx, username, password)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		activities, err := session.GetActivities(ctx)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if len(activities) == 0 {
+			http.Error(w, "There are no activities to backup", http.StatusBadRequest)
+			return
+		}
+
+		export(activities, w)
 	})
 
 	http.ListenAndServe(":80", nil)
