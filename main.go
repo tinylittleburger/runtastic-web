@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"io"
@@ -49,8 +50,25 @@ func export(activities []api.Activity, w io.Writer) error {
 
 func main() {
 	http.HandleFunc("/download", func(w http.ResponseWriter, r *http.Request) {
-		username := "imateapot@mailinator.com"
-		password := "imateapot"
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var username, password string
+
+		for key, value := range r.Form {
+			switch key {
+			case "username":
+				username = strings.Join(value, "")
+			case "password":
+				password = strings.Join(value, "")
+			}
+		}
+
+		if username == "" || password == "" {
+			http.Error(w, "Missing username or password", http.StatusUnauthorized)
+		}
 
 		ctx := context.Background()
 		session, err := api.Login(ctx, username, password)
